@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Health Monitoring System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2b5876 0%, #4e4376 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+            height: calc(100vh - 40px);
+        }
+
+        .main-panel {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .title {
+            font-size: 26px;
+            font-weight: bold;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            border-radius: 25px;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4CAF50;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.6; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .status-message {
+            font-size: 16px;
+            opacity: 0.9;
+            text-align: center;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .side-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        .panel-section {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .metric-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .metric-label {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .metric-value {
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .metric-value.safe { color: #4CAF50; }
+        .metric-value.warning { color: #FF9800; }
+        .metric-value.danger { color: #F44336; }
+
+        .progress-bar {
+            width: 100px;
+            height: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+
+        .progress-fill.safe { background: #4CAF50; }
+        .progress-fill.warning { background: #FF9800; }
+        .progress-fill.danger { background: #F44336; }
+
+        .alert-item {
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            background: rgba(244, 67, 54, 0.2);
+            border-left: 4px solid #F44336;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .alert-item.warning {
+            background: rgba(255, 152, 0, 0.2);
+            border-left: 4px solid #FF9800;
+        }
+
+        .alert-timestamp {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .health-chart {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 140px;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .notification.success { background: #4CAF50; }
+        .notification.warning { background: #FF9800; }
+        .notification.danger { background: #F44336; }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-panel">
+            <div class="header">
+                <div class="title">🏥 Employee Health Monitor</div>
+                <div class="status-indicator">
+                    <div class="status-dot" id="statusDot"></div>
+                    <span id="statusText">Initializing...</span>
+                </div>
+            </div>
+            <div class="status-message" id="statusMessage">
+                Run fatigue_emotion_detector.py to start monitoring
+            </div>
+            <div class="controls">
+                <button class="btn btn-primary" id="startBtn">▶ Start Monitoring</button>
+                <button class="btn btn-secondary" id="stopBtn" disabled>⏹ Stop Monitoring</button>
+                <button class="btn btn-secondary" id="emergencyBtn">🚨 Emergency Alert</button>
+            </div>
+        </div>
+        <div class="side-panel">
+            <div class="panel-section">
+                <div class="section-title">💓 Health Status</div>
+                <div class="metric-item">
+                    <span class="metric-label">Overall Health</span>
+                    <span class="metric-value safe" id="overallHealth">Initializing</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Fatigue Level</span>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span class="metric-value safe" id="fatigueLevel">N/A</span>
+                        <div class="progress-bar">
+                            <div class="progress-fill safe" id="fatigueProgress" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Stress Level</span>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span class="metric-value safe" id="stressLevel">N/A</span>
+                        <div class="progress-bar">
+                            <div class="progress-fill safe" id="stressProgress" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Dominant Emotion</span>
+                    <span class="metric-value safe" id="dominantEmotion">N/A</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Blink Rate</span>
+                    <span class="metric-value safe" id="blinkRate">N/A</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Last Updated</span>
+                    <span class="metric-value" id="lastUpdated">N/A</span>
+                </div>
+            </div>
+            <div class="panel-section">
+                <div class="section-title">📈 Long-term Health</div>
+                <div class="metric-item">
+                    <span class="metric-label">Avg Fatigue</span>
+                    <span class="metric-value" id="avgFatigue">N/A</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Avg Stress</span>
+                    <span class="metric-value" id="avgStress">N/A</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Avg Drowsy %</span>
+                    <span class="metric-value" id="avgDrowsy">N/A</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Common Emotion</span>
+                    <span class="metric-value" id="commonEmotion">N/A</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Avg Pallor</span>
+                    <span class="metric-value" id="avgPallor">N/A</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Avg Yellowing</span>
+                    <span class="metric-value" id="avgYellowing">N/A</span>
+                </div>
+            </div>
+            <div class="panel-section">
+                <div class="section-title">⚠ Alerts</div>
+                <div id="alertsContainer">No alerts</div>
+            </div>
+            <div class="panel-section">
+                <div class="section-title">📊 Fatigue Trend (5 min)</div>
+                <div class="health-chart">
+                    <canvas id="trendChart" width="300" height="140"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class EmployeeHealthMonitor {
+            constructor() {
+                this.startBtn = document.getElementById('startBtn');
+                this.stopBtn = document.getElementById('stopBtn');
+                this.emergencyBtn = document.getElementById('emergencyBtn');
+                this.statusDot = document.getElementById('statusDot');
+                this.statusText = document.getElementById('statusText');
+                this.statusMessage = document.getElementById('statusMessage');
+                this.overallHealth = document.getElementById('overallHealth');
+                this.fatigueLevel = document.getElementById('fatigueLevel');
+                this.fatigueProgress = document.getElementById('fatigueProgress');
+                this.stressLevel = document.getElementById('stressLevel');
+                this.stressProgress = document.getElementById('stressProgress');
+                this.dominantEmotion = document.getElementById('dominantEmotion');
+                this.blinkRate = document.getElementById('blinkRate');
+                this.lastUpdated = document.getElementById('lastUpdated');
+                this.avgFatigue = document.getElementById('avgFatigue');
+                this.avgStress = document.getElementById('avgStress');
+                this.avgDrowsy = document.getElementById('avgDrowsy');
+                this.commonEmotion = document.getElementById('commonEmotion');
+                this.avgPallor = document.getElementById('avgPallor');
+                this.avgYellowing = document.getElementById('avgYellowing');
+                this.alertsContainer = document.getElementById('alertsContainer');
+                this.trendChart = document.getElementById('trendChart');
+                this.trendCtx = this.trendChart.getContext('2d');
+
+                this.isMonitoring = false;
+                this.fatigueHistory = [];
+                this.alertHistory = [];
+
+                this.setupEventListeners();
+                this.setupTrendChart();
+                this.checkInitialJson();
+            }
+
+            checkInitialJson() {
+                fetch('health_state.json')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.health_state === 'Initializing') {
+                            this.updateStatus('ready', 'Ready - Run Python Script');
+                            this.statusMessage.textContent = 'Run fatigue_emotion_detector.py to start monitoring';
+                        }
+                    })
+                    .catch(() => {
+                        this.updateStatus('error', 'JSON Not Found');
+                        this.statusMessage.textContent = 'Error: health_state.json not found. Run fatigue_emotion_detector.py';
+                    });
+            }
+
+            setupEventListeners() {
+                this.startBtn.addEventListener('click', () => this.startMonitoring());
+                this.stopBtn.addEventListener('click', () => this.stopMonitoring());
+                this.emergencyBtn.addEventListener('click', () => this.triggerEmergency());
+            }
+
+            setupTrendChart() {
+                this.trendCtx.strokeStyle = '#FF9800';
+                this.trendCtx.lineWidth = 2;
+                this.trendCtx.fillStyle = 'rgba(255, 152, 0, 0.1)';
+                // Draw grid lines
+                this.trendCtx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+                this.trendCtx.lineWidth = 1;
+                for (let y = 0; y <= 1; y += 0.25) {
+                    this.trendCtx.beginPath();
+                    this.trendCtx.moveTo(0, this.trendChart.height * (1 - y));
+                    this.trendCtx.lineTo(this.trendChart.width, this.trendChart.height * (1 - y));
+                    this.trendCtx.stroke();
+                    this.trendCtx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                    this.trendCtx.font = '10px Segoe UI';
+                    this.trendCtx.fillText(`${(y * 100).toFixed(0)}%`, 5, this.trendChart.height * (1 - y) - 5);
+                }
+                this.trendCtx.strokeStyle = '#FF9800';
+                this.trendCtx.lineWidth = 2;
+                this.trendCtx.fillStyle = 'rgba(255, 152, 0, 0.1)';
+            }
+
+            startMonitoring() {
+                if (this.isMonitoring) return;
+                this.isMonitoring = true;
+                this.startBtn.disabled = true;
+                this.stopBtn.disabled = false;
+                this.alertHistory = [];
+                this.fatigueHistory = [];
+                this.updateStatus('monitoring', 'Monitoring Active');
+                this.statusMessage.textContent = 'Monitoring - Ensure Python script is running';
+                this.showNotification('Monitoring started', 'success');
+                this.monitoringLoop();
+            }
+
+            stopMonitoring() {
+                this.isMonitoring = false;
+                this.startBtn.disabled = false;
+                this.stopBtn.disabled = true;
+                this.updateStatus('ready', 'Monitoring Stopped');
+                this.statusMessage.textContent = 'Monitoring stopped. Run fatigue_emotion_detector.py to resume';
+                this.showNotification('Monitoring stopped', 'warning');
+            }
+
+            async monitoringLoop() {
+                if (!this.isMonitoring) return;
+                try {
+                    const response = await fetch('health_state.json');
+                    const data = await response.json();
+                    this.updateUI(data);
+                    this.checkAlerts(data);
+                    this.updateTrendChart(data);
+                    this.statusMessage.textContent = 'Monitoring - Data updated';
+
+                    // Fetch and update long-term
+                    const histResponse = await fetch('health_history.json');
+                    const histData = await histResponse.json();
+                    this.updateLongTerm(histData.entries);
+                } catch (error) {
+                    console.error('Error fetching JSON:', error);
+                    this.updateStatus('error', 'JSON Error');
+                    this.statusMessage.textContent = 'Error: Could not load health_state.json';
+                    this.showNotification('Error loading health data. Ensure Python script is running.', 'danger');
+                }
+                setTimeout(() => this.monitoringLoop(), 60000); // Update every 60 seconds
+            }
+
+            updateUI(data) {
+                const overallText = data.health_state === 'Happy' || data.health_state === 'Normal' ? 'Good' :
+                    data.health_state === 'High Fatigue' ? 'Fair' : data.health_state === 'No Face Detected' ? 'N/A' : 'Poor';
+                const overallClass = data.health_state === 'Happy' || data.health_state === 'Normal' ? 'safe' :
+                    data.health_state === 'High Fatigue' ? 'warning' : data.health_state === 'No Face Detected' ? '' : 'danger';
+                this.overallHealth.textContent = overallText;
+                this.overallHealth.className = `metric-value ${overallClass}`;
+
+                const fatigueText = data.fatigue_level < 0.4 ? 'Low' : data.fatigue_level < 0.7 ? 'Moderate' : 'High';
+                const fatigueClass = data.fatigue_level < 0.4 ? 'safe' : data.fatigue_level < 0.7 ? 'warning' : 'danger';
+                this.fatigueLevel.textContent = fatigueText;
+                this.fatigueLevel.className = `metric-value ${fatigueClass}`;
+                this.fatigueProgress.style.width = `${data.fatigue_level * 100}%`;
+                this.fatigueProgress.className = `progress-fill ${fatigueClass}`;
+
+                const stressText = data.stress_level < 0.3 ? 'Low' : data.stress_level < 0.6 ? 'Moderate' : 'High';
+                this.stressLevel.textContent = stressText;
+                this.stressLevel.className = `metric-value ${data.stress_level < 0.3 ? 'safe' : 'warning'}`;
+                this.stressProgress.style.width = `${data.stress_level * 100}%`;
+                this.stressProgress.className = `progress-fill ${data.stress_level < 0.3 ? 'safe' : 'warning'}`;
+
+                this.dominantEmotion.textContent = data.dominant_emotion;
+                this.dominantEmotion.className = `metric-value ${overallClass}`;
+
+                this.blinkRate.textContent = `${Math.round(data.drowsy_percent / 4)}/min`;
+                this.blinkRate.className = `metric-value ${data.drowsy_percent < 40 ? 'safe' : 'warning'}`;
+
+                this.lastUpdated.textContent = data.timestamp;
+                this.lastUpdated.className = 'metric-value';
+            }
+
+            updateLongTerm(entries) {
+                if (!entries || entries.length === 0) {
+                    this.avgFatigue.textContent = 'N/A';
+                    this.avgStress.textContent = 'N/A';
+                    this.avgDrowsy.textContent = 'N/A';
+                    this.commonEmotion.textContent = 'N/A';
+                    this.avgPallor.textContent = 'N/A';
+                    this.avgYellowing.textContent = 'N/A';
+                    return;
+                }
+
+                const avgFatigueVal = entries.reduce((sum, e) => sum + e.fatigue_level, 0) / entries.length;
+                const avgFatigueText = avgFatigueVal < 0.4 ? 'Low' : avgFatigueVal < 0.7 ? 'Moderate' : 'High';
+                const avgFatigueClass = avgFatigueVal < 0.4 ? 'safe' : avgFatigueVal < 0.7 ? 'warning' : 'danger';
+                this.avgFatigue.textContent = avgFatigueText;
+                this.avgFatigue.className = `metric-value ${avgFatigueClass}`;
+
+                const avgStressVal = entries.reduce((sum, e) => sum + e.stress_level, 0) / entries.length;
+                const avgStressText = avgStressVal < 0.3 ? 'Low' : avgStressVal < 0.6 ? 'Moderate' : 'High';
+                const avgStressClass = avgStressVal < 0.3 ? 'safe' : avgStressVal < 0.6 ? 'warning' : 'danger';
+                this.avgStress.textContent = avgStressText;
+                this.avgStress.className = `metric-value ${avgStressClass}`;
+
+                const avgDrowsyVal = entries.reduce((sum, e) => sum + e.drowsy_percent, 0) / entries.length;
+                this.avgDrowsy.textContent = `${Math.round(avgDrowsyVal)}%`;
+                this.avgDrowsy.className = `metric-value ${avgDrowsyVal < 30 ? 'safe' : avgDrowsyVal < 60 ? 'warning' : 'danger'}`;
+
+                const emotionCounts = {};
+                entries.forEach(e => {
+                    if (e.dominant_emotion !== 'None') {
+                        emotionCounts[e.dominant_emotion] = (emotionCounts[e.dominant_emotion] || 0) + 1;
+                    }
+                });
+                const common = Object.keys(emotionCounts).reduce((a, b) => emotionCounts[a] > emotionCounts[b] ? a : b, null) || 'N/A';
+                this.commonEmotion.textContent = common;
+                this.commonEmotion.className = `metric-value ${common === 'Happy' || common === 'Neutral' ? 'safe' : 'warning'}`;
+
+                const avgPallorVal = entries.reduce((sum, e) => sum + e.pallor_score, 0) / entries.length;
+                this.avgPallor.textContent = `${Math.round(avgPallorVal * 100)}%`;
+                this.avgPallor.className = `metric-value ${avgPallorVal > 0.5 ? 'danger' : 'safe'}`;
+
+                const avgYellowingVal = entries.reduce((sum, e) => sum + e.yellowing_score, 0) / entries.length;
+                this.avgYellowing.textContent = `${Math.round(avgYellowingVal * 100)}%`;
+                this.avgYellowing.className = `metric-value ${avgYellowingVal > 0.5 ? 'danger' : 'safe'}`;
+            }
+
+            checkAlerts(data) {
+                const alerts = [];
+                const timestamp = new Date().toLocaleTimeString();
+                if (data.health_state === 'Drowsy') {
+                    alerts.push({ type: 'danger', message: 'Drowsiness detected - Take a break', timestamp });
+                } else if (data.health_state === 'High Fatigue') {
+                    alerts.push({ type: 'warning', message: 'High fatigue detected - Monitor closely', timestamp });
+                }
+                if (data.stress_level > 0.6) {
+                    alerts.push({ type: 'warning', message: 'High stress detected', timestamp });
+                }
+                if (data.health_state === 'No Face Detected') {
+                    alerts.push({ type: 'warning', message: 'No face detected - Ensure proper positioning', timestamp });
+                }
+                this.alertHistory.push(...alerts);
+                this.alertHistory = this.alertHistory.slice(-5); // Keep last 5 alerts
+                this.alertsContainer.innerHTML = this.alertHistory.length
+                    ? this.alertHistory.map(a => `<div class="alert-item ${a.type}">${a.message}<span class="alert-timestamp">${a.timestamp}</span></div>`).join('')
+                    : 'No alerts';
+            }
+
+            updateTrendChart(data) {
+                this.fatigueHistory.push({
+                    time: Date.now(),
+                    level: data.fatigue_level
+                });
+                this.fatigueHistory = this.fatigueHistory.filter(d => d.time > Date.now() - 300000);
+
+                this.trendCtx.clearRect(0, 0, this.trendChart.width, this.trendChart.height);
+                // Redraw grid
+                this.trendCtx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+                this.trendCtx.lineWidth = 1;
+                for (let y = 0; y <= 1; y += 0.25) {
+                    this.trendCtx.beginPath();
+                    this.trendCtx.moveTo(0, this.trendChart.height * (1 - y));
+                    this.trendCtx.lineTo(this.trendChart.width, this.trendChart.height * (1 - y));
+                    this.trendCtx.stroke();
+                    this.trendCtx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                    this.trendCtx.fillText(`${(y * 100).toFixed(0)}%`, 5, this.trendChart.height * (1 - y) - 5);
+                }
+                // Draw trend
+                this.trendCtx.strokeStyle = '#FF9800';
+                this.trendCtx.lineWidth = 2;
+                this.trendCtx.beginPath();
+                this.fatigueHistory.forEach((point, i) => {
+                    const x = (i / (this.fatigueHistory.length - 1)) * this.trendChart.width;
+                    const y = this.trendChart.height - (point.level * this.trendChart.height);
+                    i === 0 ? this.trendCtx.moveTo(x, y) : this.trendCtx.lineTo(x, y);
+                });
+                this.trendCtx.stroke();
+            }
+
+            triggerEmergency() {
+                this.showNotification('Emergency alert sent to supervisor', 'danger');
+                this.updateStatus('emergency', 'Emergency Alert');
+                setTimeout(() => this.updateStatus(this.isMonitoring ? 'monitoring' : 'ready',
+                    this.isMonitoring ? 'Monitoring Active' : 'Monitoring Stopped'), 5000);
+            }
+
+            updateStatus(status, text) {
+                this.statusText.textContent = text;
+                this.statusDot.style.background = status === 'monitoring' || status === 'ready' ? '#4CAF50' :
+                    status === 'warning' ? '#FF9800' : '#F44336';
+            }
+
+            showNotification(message, type) {
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                notification.textContent = message;
+                document.body.appendChild(notification);
+                setTimeout(() => notification.remove(), 3000);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                new EmployeeHealthMonitor();
+            } catch (error) {
+                console.error('Initialization failed:', error);
+                document.getElementById('statusMessage').textContent = 'Initialization failed. Check console.';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+    "timestamp": "2025-09-15 22:05:38",
+    "health_state": "Initializing",
+    "avg_ear": 0.0,
+    "drowsy_percent": 0.0,
+    "fatigue_level": 0.0,
+    "stress_level": 0.0,
+    "dominant_emotion": "None",
+    "pallor_score": 0.0,
+    "yellowing_score": 0.0,
+    "health_risk_score": 0.0,
+    "explainability": "System initialized",
+    "escalation": "Waiting for first analysis"
+}
